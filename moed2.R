@@ -66,6 +66,7 @@ library(wordcloud)
 # color pallet for the word cloud 
 pal <- brewer.pal(9,'Dark2')
 set.seed(1234)
+
 wordcloud(clean.corpus ,min.freq = 10, random.order = FALSE, colors = pal)
 
 convert_01 <- function(x){
@@ -75,23 +76,68 @@ convert_01 <- function(x){
 
 dtm.final <- apply(dtm.freq, MARGIN = 1:2, convert_01)
 dtm.df <- as.data.frame(dtm.final)
-#############################################
-#wordcloud(c(clean.corpus,[100:1000]), frequency(10), offset(5), random.order = FALSE, colors = pal)
-?wordcloud
-?frequency
-wordcloud(clean.corpus, seq(100, 1000, len = 5),random.order = FALSE, colors = pal)
-#############################################
+############################################################################################
+wordcloud(clean.corpus ,freq = 10 ,min.words=100,max.words=1000,
+          random.order=FALSE, colors(pal))
+set.seed(1234)
+wordcloud(words = clean.corpus, freq = dtm$ncol, min.freq = 10,
+          max.words=1000, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+
+
+######################################################################################################
 #split to test and train
 library(caTools)
 
 filter <- sample.split(dtm.df$text, SplitRatio = 0.7)
-spam.train = subset(dtm.df, filter==T)
-spam.test = subset(dtm.df, filter==F)
+text.train = subset(dtm.df, filter==T)
+text.test = subset(dtm.df, filter==F)
 dim(spam.train)
 dim(spam.test)
 
 
+#Q3:
+#1
+model.lr <-  glm(text~.label = binomial(link = 'logit'), data = text.train)
 
+prediction <- predict(model.lr,text.test, type = 'response')
+actual <- text.test$label
+prediction.lr <- prediction >0.5
+cfNB <- table(prediction.lr, actual)
 
+#2
+install.packages('rpart')
+library(rpart)
+install.packages('rpart.plot')
+library(rpart.plot)
+model <- rpart(text$label,churn.train)
+rpart.plot(model, box.palette="RdBu", shadow.col="gray", nn=TRUE)
+#calculating the confusion matrix
+str(text.test)
+prediction <- predict(model,text.test)
+
+#function is a matrix instead of a vectr
+predict.prob.yes <- prediction[,'Yes']
+prediciton.dt <- predict.prob.yes > 0.5
+actual <- text.test$label
+cf <- table(prediciton.dt,actual)
+precision <-cf['TRUE','Yes']/(cf['TRUE','Yes'] + cf['TRUE','No'] )
+recall <- cf['TRUE','Yes']/(cf['TRUE','Yes'] + cf['FALSE','Yes'] )
+
+#3
+#ROC curve 
+install.packages('pROC')
+library(pROC)
+rocCurveDT <- roc(text.test$label, predict.prob.yes, direction = "<", levels = c("No","Yes"))
+rocCurveLR <- roc(text.test$label, prediction, direction = "<", levels = c("No","Yes"))
+#Calculate AUC
+auc(rocCurveDT)
+auc(rocCurveLR)
+#Naive base is a little better
+plot(rocCurveDT, col="red", main='ROC chart')
+par(new=TRUE)
+plot(rocCurveLR, col="blue", main='ROC chart')
+
+#Q4
 
 
