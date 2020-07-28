@@ -68,14 +68,6 @@ pal <- brewer.pal(9,'Dark2')
 set.seed(1234)
 
 wordcloud(clean.corpus ,min.freq = 10, random.order = FALSE, colors = pal)
-
-convert_01 <- function(x){
-  x <- ifelse(x>0,1,0)
-  return (as.integer(x))
-}
-
-dtm.final <- apply(dtm.freq, MARGIN = 1:2, convert_01)
-dtm.df <- as.data.frame(dtm.final)
 ############################################################################################
 wordcloud(clean.corpus ,freq = 10 ,min.words=100,max.words=1000,
           random.order=FALSE, colors(pal))
@@ -86,6 +78,14 @@ wordcloud(words = clean.corpus, freq = dtm$ncol, min.freq = 10,
 
 
 ######################################################################################################
+
+convert_01 <- function(x){
+  x <- ifelse(x>0,1,0)
+  return (as.integer(x))
+}
+
+dtm.final <- apply(dtm.freq, MARGIN = 1:2, convert_01)
+dtm.df <- as.data.frame(dtm.final)
 #split to test and train
 library(caTools)
 
@@ -138,6 +138,6 @@ plot(rocCurveDT, col="red", main='ROC chart')
 par(new=TRUE)
 plot(rocCurveLR, col="blue", main='ROC chart')
 
-#Q4
+
 
 
